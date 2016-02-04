@@ -31,47 +31,13 @@
             </tr>
           </thead>
           <tbody>
+<% @data.each do |e| %>
             <tr>
-              <th>&#128588; GG</th>
-              <td><%= @data[:gg] %></td>
-              <td>Creative</td>
+              <th><%= e[:name] %></th>
+              <td><%= e[:find].call %></td>
+              <td>Not-yet-implemented</td>
             </tr>
-            <tr>
-              <th>&#128515; Happy</th>
-              <td><%= @data[:happy] %></td>
-              <td>55</td>
-            </tr>
-            <tr>
-              <th>&#127865; Helpful</th>
-              <td><%= @data[:thanks] %></td>
-              <td>68</td>
-            </tr>
-            <tr>
-              <th>&#128049; Most Gifs</th>
-              <td>95</td>
-              <td>46</td>
-            </tr>
-            <tr>
-              <th>&#128561; Emoji</th>
-              <td><%= @data[:emoji] %></td>
-              <td>66</td>
-            </tr>
-            <tr>
-              <th>&#128123; Spammer</th>
-              <td><%= @data[:spammer] %></td>
-              <td>15</td>
-            </tr>
-            <tr>
-              <th>&#128040; Quiet</th>
-              <td><%= @data[:quiet] %></td>
-              <td>46</td>
-            </tr>
-            <tr>
-              <th>&#128129; Popular</th>
-              <td><%= @data[:popular] %></td>
-              <td>93</td>
-            </tr>
-
+<% end %>
           </tbody>
         </table>
       </div>

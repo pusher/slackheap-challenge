@@ -1,4 +1,5 @@
 require 'sinatra'
+require 'tilt/erb'
 
 module SlackPrizes
   class SinatraApp < Sinatra::Base
@@ -29,13 +30,39 @@ module SlackPrizes
 
     set :public_folder, File.dirname(__FILE__) + '/static'
 
-    get '/' do
-      data = [ :happy, :thanks, :gg, :emoji, :spammer, :popular ].map do |type|
-        [ type, SinatraApp.highest_user_from_zset(type) ]
-      end
-      @data = Hash[data]
-      @data[:quiet] = SinatraApp.lowest_user_from_zset(:spammer)
+    CATEGORIES = [
+      {
+        name: '&#128588; GG',
+        find: lambda { SinatraApp.highest_user_from_zset(:gg) }
+      },
+      {
+        name: '&#128515; Happy',
+        find: lambda { SinatraApp.highest_user_from_zset(:happy) }
+      },
+      {
+        name: '&#127865; Helpful',
+        find: lambda { SinatraApp.highest_user_from_zset(:thanks) }
+      },
+      {
+        name: '&#128561; Emoji',
+        find: lambda { SinatraApp.highest_user_from_zset(:emoji) }
+      },
+      {
+        name: '&#128123; Spammer',
+        find: lambda { SinatraApp.highest_user_from_zset(:spammer) }
+      },
+      {
+        name: '&#128040; Quiet',
+        find: lambda { SinatraApp.lowest_user_from_zset(:spammer) }
+      },
+      {
+        name: '&#128129; Popular',
+        find: lambda { SinatraApp.highest_user_from_zset(:popular) }
+      }
+    ]
 
+    get '/' do
+      @data = CATEGORIES
       erb :index
     end
 
