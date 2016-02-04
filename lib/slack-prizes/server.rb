@@ -38,6 +38,12 @@ module SlackPrizes
       check_emoji(data)
       check_thanks(data)
       check_gg(data)
+      check_spammer(data)
+      check_popular(data)
+    end
+
+    def check_spammer(data)
+      check_and_count(data, [//], :spammer)
     end
 
     HAPPY_REGEXES = [
@@ -52,12 +58,8 @@ module SlackPrizes
       check_and_count(data, HAPPY_REGEXES, :happy)
     end
 
-    EMOJI_REGEXES = [
-      /:[a-z_]+:/i
-    ]
-
     def check_emoji(data)
-      check_and_count(data, EMOJI_REGEXES, :emoji)
+      check_and_count(data, [ /:[a-z_]+:/i ], :emoji)
     end
 
     THANKYOU_REGEXES = [
@@ -80,6 +82,13 @@ module SlackPrizes
 
     def check_gg(data)
       check_and_attribute(data, GG_REGEXES, :gg)
+    end
+
+    def check_popular(data)
+      target = mention(data['text'])
+      if target
+        @redis.zincrby(:popular, 1, target)
+      end
     end
 
     def check_and_count(data, regexes, key)
