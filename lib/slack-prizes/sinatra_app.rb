@@ -9,8 +9,17 @@ module SlackPrizes
       @redis.hget(:users, user_id)
     end
 
-    def self.best_user_from_zset(set)
+    def self.highest_user_from_zset(set)
       user_id, score = SinatraApp.redis.zrange(set, -1, -1, withscores: true).first
+      if user_id
+        "#{resolve_user(user_id)} (#{score.to_i})"
+      else
+        "Unknown"
+      end
+    end
+
+    def self.lowest_user_from_zset(set)
+      user_id, score = SinatraApp.redis.zrevrange(set, -1, -1, withscores: true).first
       if user_id
         "#{resolve_user(user_id)} (#{score.to_i})"
       else
@@ -22,9 +31,10 @@ module SlackPrizes
 
     get '/' do
       data = [ :happy, :thanks, :gg, :emoji, :spammer, :popular ].map do |type|
-        [ type, SinatraApp.best_user_from_zset(type) ]
+        [ type, SinatraApp.highest_user_from_zset(type) ]
       end
       @data = Hash[data]
+      @data[:quiet] = SinatraApp.lowest_user_from_zset(:spammer)
 
       erb :index
     end
