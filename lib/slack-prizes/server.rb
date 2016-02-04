@@ -31,7 +31,6 @@ module SlackPrizes
     end
 
     def process(data)
-      p data
       @registry.scan(data)
 
       check_happy(data)
