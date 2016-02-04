@@ -10,9 +10,9 @@ module SlackPrizes
     end
 
     def self.best_user_from_zset(set)
-      user_id = SinatraApp.redis.zrange(set, -1, -1).first
+      user_id, score = SinatraApp.redis.zrange(set, -1, -1, withscores: true).first
       if user_id
-        resolve_user(user_id)
+        "#{resolve_user(user_id)} (#{score.to_i})"
       else
         "Unknown"
       end
@@ -21,8 +21,11 @@ module SlackPrizes
     set :public_folder, File.dirname(__FILE__) + '/static'
 
     get '/' do
-      @happiest = SinatraApp.best_user_from_zset(:happy)
-      @most_helpful = SinatraApp.best_user_from_zset(:thanks)
+      data = [ :happy, :thanks ].map do |type|
+        [ type, SinatraApp.best_user_from_zset(type) ]
+      end
+      @data = Hash[data]
+
       erb :index
     end
 
