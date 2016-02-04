@@ -11,14 +11,13 @@ module SlackPrizes
 
     def initialize(
       thin_server: nil,
-      redis: nil
+      redis: nil,
+      registry: nil
     )
+
       @thin_server = thin_server
       @redis = redis
-
-      @last_message_by_channel = {}
-      @last_speakers_by_channel = Hash.new { |h, k| h[k] = HistoryVector.new(2) }
-      @known_users = Set.new
+      @registry = registry
     end
 
     def go
@@ -33,7 +32,7 @@ module SlackPrizes
 
     def process(data)
       p data
-      register(data)
+      @registry.scan(data)
 
       check_happy(data)
       check_thanks(data)
@@ -56,27 +55,18 @@ module SlackPrizes
     THANKYOU_REGEXES = [
       /thanks/i,
       /thank you/i,
-      /[^\p{Alnum}]ty[^\p{Alnum}]/i,
-      /[^\p{Alnum}]ta[^\p{Alnum}]/i,
+      /\bty\b/i,
+      /\bta\b/i,
       /thx/i,
       /cheers/i
     ]
 
     def check_thanks(data)
       if match_any(THANKYOU_REGEXES, data['text'])
-        target = mention(data['text']) || last_speaker(data)
+        target = mention(data['text']) || @registry.last_speaker(data['channel_id'], data['user_id'])
         if target
           @redis.zincrby(:thanks, 1, target)
         end
-      end
-    end
-
-    def last_speaker(channel_id, excluding = nil)
-      speakers = @last_speakers_by_channel['channel_id']
-      if excluding
-        speakers.peek_excluding(excluding)
-      else
-        speakers.peek
       end
     end
 
@@ -85,17 +75,6 @@ module SlackPrizes
         return $1
       else
         nil
-      end
-    end
-
-    def register(data)
-      @last_message_by_channel[data['channel_id']] = data
-
-      @last_speakers_by_channel[data['channel_id']].add(data['user_id'])
-
-      unless @known_users.member?(data['user_id'])
-        @redis.hset('users', data['user_id'], data['user_name'])
-        @known_users.add(data['user_id'])
       end
     end
 

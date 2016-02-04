@@ -13,5 +13,6 @@ redis = Redis.new(db: 15)
 
 SlackPrizes::Server.new(
   thin_server: thin_server,
-  redis: redis
+  redis: redis,
+  registry: SlackPrizes::UsefulRegistry.new(redis: redis)
 ).go
