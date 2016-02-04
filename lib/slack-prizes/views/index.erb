@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+		<title>Slackheap Challenge</title>
+		<link rel="shortcut icon" href="../favicon.ico">
+		<link rel="stylesheet" type="text/css" href="css/normalize.css" />
+		<link rel="stylesheet" type="text/css" href="css/demo.css" />
+		<link rel="stylesheet" type="text/css" href="css/component.css" />
+		<!--[if IE]>
+  		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+	</head>
+	<body>
+		<div class="container">
+			<!-- Top Navigation -->
+			<header>
+				<h1>Slackheap Challenge <span>Weekly Stats</span></h1>	
+			</header>
+			<div class="component">
+				<h2>Awards Board</h2>
+				<p>Awarding the finest slackers amongst us</p>
+				<table>
+					<thead>
+						<tr>
+							<th>Awards</th>
+							<th>Individual</th>
+							<th>Team</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<th>&#128588; GG</th>
+							<td>Alex</td>
+							<td>Creative</td>
+						</tr>
+						<tr>
+							<th>&#128515; Happy</th>
+							<td><%= @happiest %></td>
+							<td>55</td>
+						</tr>
+						<tr>
+							<th>&#127865; Helpful</th>
+							<td><%= @most_helpful %></td>
+							<td>68</td>
+						</tr>
+						<tr>
+							<th>&#128049; Most Gifs</th>
+							<td>95</td>
+							<td>46</td>
+						</tr>
+						<tr>
+							<th>&#128561; Reactions</th>
+							<td>19</td>
+							<td>66</td>
+						</tr>
+						<tr>
+							<th>&#128123; Spammer</th>
+							<td>57</td>
+							<td>15</td>
+						</tr>
+						<tr>
+							<th>&#128040; Quiet</th>
+							<td>69</td>
+							<td>46</td>
+						</tr>
+						<tr>
+							<th>&#128129; Popular</th>
+							<td>18</td>
+							<td>93</td>
+						</tr>
+						
+					</tbody>
+				</table>
+			</div>
+	
+
+		</div><!-- /container -->
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-throttle-debounce/1.1/jquery.ba-throttle-debounce.min.js"></script>
+		<script src="js/jquery.stickyheader.js"></script>
+	</body>
+</html>

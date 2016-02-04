@@ -11,6 +11,8 @@ thin_server = Thin::Server.new(
 
 redis = Redis.new(db: 15)
 
+SlackPrizes::SinatraApp.redis = redis
+
 SlackPrizes::Server.new(
   thin_server: thin_server,
   redis: redis,
