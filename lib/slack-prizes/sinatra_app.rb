@@ -21,7 +21,7 @@ module SlackPrizes
     set :public_folder, File.dirname(__FILE__) + '/static'
 
     get '/' do
-      data = [ :happy, :thanks ].map do |type|
+      data = [ :happy, :thanks, :gg, :emoji ].map do |type|
         [ type, SinatraApp.best_user_from_zset(type) ]
       end
       @data = Hash[data]

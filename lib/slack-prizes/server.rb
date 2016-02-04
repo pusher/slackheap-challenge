@@ -35,7 +35,9 @@ module SlackPrizes
       @registry.scan(data)
 
       check_happy(data)
+      check_emoji(data)
       check_thanks(data)
+      check_gg(data)
     end
 
     HAPPY_REGEXES = [
@@ -47,9 +49,15 @@ module SlackPrizes
     ]
 
     def check_happy(data)
-      if match_any(HAPPY_REGEXES, data['text'])
-        @redis.zincrby(:happy, 1, data['user_id'])
-      end
+      check_and_count(data, HAPPY_REGEXES, :happy)
+    end
+
+    EMOJI_REGEXES = [
+      /:[a-z_]+:/i
+    ]
+
+    def check_emoji(data)
+      check_and_count(data, EMOJI_REGEXES, :emoji)
     end
 
     THANKYOU_REGEXES = [
@@ -62,10 +70,29 @@ module SlackPrizes
     ]
 
     def check_thanks(data)
-      if match_any(THANKYOU_REGEXES, data['text'])
+      check_and_attribute(data, THANKYOU_REGEXES, :thanks)
+    end
+
+    GG_REGEXES = [
+      /\bgg\b/i,
+      /:gg:/i
+    ]
+
+    def check_gg(data)
+      check_and_attribute(data, GG_REGEXES, :gg)
+    end
+
+    def check_and_count(data, regexes, key)
+      if match_any(regexes, data['text'])
+        @redis.zincrby(key, 1, data['user_id'])
+      end
+    end
+
+    def check_and_attribute(data, regexes, key)
+      if match_any(regexes, data['text'])
         target = mention(data['text']) || @registry.last_speaker(data['channel_id'], data['user_id'])
         if target
-          @redis.zincrby(:thanks, 1, target)
+          @redis.zincrby(key, 1, target)
         end
       end
     end
