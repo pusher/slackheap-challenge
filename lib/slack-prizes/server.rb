@@ -10,21 +10,14 @@ module SlackPrizes
     end
 
     def initialize(
-      thin_server: nil,
       redis: nil,
       registry: nil
     )
-
-      @thin_server = thin_server
       @redis = redis
       @registry = registry
     end
 
     def go
-      Thread.new {
-        @thin_server.start
-      }
-
       while true
         process(Server.queue.pop)
       end
