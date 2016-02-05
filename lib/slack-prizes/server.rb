@@ -1,3 +1,4 @@
+require 'slack-ruby-client'
 require 'thin'
 require 'redis'
 require 'thread'
@@ -5,10 +6,6 @@ require 'set'
 
 module SlackPrizes
   class Server
-    def self.queue
-      @queue ||= Queue.new
-    end
-
     def initialize(
       redis: nil,
       registry: nil
@@ -18,9 +15,21 @@ module SlackPrizes
     end
 
     def go
-      while true
-        process(Server.queue.pop)
+      client = Slack::RealTime::Client.new(token: ENV['SLACK_TOKEN'])
+
+      client.on :hello do
+        puts "Successfully connected, welcome '#{client.self.name}' to the '#{client.team.name}' team at https://#{client.team.domain}.slack.com."
+        client.users.each do |user|
+          user = user[1] # slightly odd data: [ user_id, user_object ]
+          @redis.hset(:users, user.id, user.name)
+        end
       end
+
+      client.on :message do |data|
+        process(data)
+      end
+
+      client.start!
     end
 
     def process(data)
@@ -40,8 +49,8 @@ module SlackPrizes
     end
 
     def check_lovebirds(data)
-      user_a = data['user_id']
-      user_b = @registry.last_speaker(data['channel_id'], user_a)
+      user_a = data.user
+      user_b = @registry.last_speaker(data.channel, user_a)
       if user_b
         users = [ user_a, user_b ].sort.join(' ')
         @redis.zincrby(:lovebirds, 1, users)
@@ -87,21 +96,21 @@ module SlackPrizes
     end
 
     def check_popular(data)
-      target = mention(data['text'])
+      target = mention(data.text)
       if target
         @redis.zincrby(:popular, 1, target)
       end
     end
 
     def check_and_count(data, regexes, key)
-      if match_any(regexes, data['text'])
-        @redis.zincrby(key, 1, data['user_id'])
+      if match_any(regexes, data.text)
+        @redis.zincrby(key, 1, data.user)
       end
     end
 
     def check_and_attribute(data, regexes, key)
-      if match_any(regexes, data['text'])
-        target = mention(data['text']) || @registry.last_speaker(data['channel_id'], data['user_id'])
+      if match_any(regexes, data.text)
+        target = mention(data.text) || @registry.last_speaker(data.channel, data.user)
         if target
           @redis.zincrby(key, 1, target)
         end

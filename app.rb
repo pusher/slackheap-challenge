@@ -16,5 +16,5 @@ Thread.new { thin_server.start }
 
 SlackPrizes::Server.new(
   redis: redis,
-  registry: SlackPrizes::UsefulRegistry.new(redis: redis)
+  registry: SlackPrizes::UsefulRegistry.new
 ).go
