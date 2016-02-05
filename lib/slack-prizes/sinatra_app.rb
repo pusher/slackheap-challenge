@@ -47,7 +47,7 @@ module SlackPrizes
     COLORS = [ '#9be7ff', '#9f9aff', '#98ffe2', '#fff999', '#ff9d9c', '#9ec2ff', '#d4fe98' ]
 
     def self.get_graph(set, limit)
-      @redis.zrange(set, 0, limit - 1, withscores: true).map do |user_id, score|
+      @redis.zrevrange(set, 0, limit - 1, withscores: true).map do |user_id, score|
         color_index = Zlib.crc32(user_id) % COLORS.size
         { label: resolve_user(user_id), value: score, color: COLORS[color_index] }
       end
