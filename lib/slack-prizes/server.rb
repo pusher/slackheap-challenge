@@ -123,7 +123,7 @@ module SlackPrizes
       target = mention(data.text)
       if target &&
           target != data.user
-        increment(:popular, 'popular', data.user, data.channel)
+        increment(:popular, 'popular', target, data.channel)
       end
     end
 
