@@ -8,12 +8,10 @@ describe SlackPrizes::Server do
   let(:other_uid) { 'user12AF' }
   let(:cid) { 'chan453w' }
 
-  def with_text(words, merge = {})
-    {
-      'user_id' => uid,
-      'channel_id' => cid,
-      'text' => words
-    }.merge(merge)
+  Message = Struct.new('Message', :user, :channel, :text)
+
+  def with_text(words)
+    Message.new(uid, cid, words)
   end
 
   subject {
@@ -58,15 +56,6 @@ describe SlackPrizes::Server do
 
     it 'should not increment on "SAFETY"' do
       subject.check_thanks(with_text("SAFETY"))
-    end
-  end
-
-  describe "Lovebirds" do
-    it 'should count messages exchanged between two people' do
-      expect(redis).to receive(:zincrby).with(:lovebirds, 1, "#{other_uid} #{uid}")
-
-      subject.check_lovebirds(with_text('blah'))
-      subject.check_lovebirds(with_text('blah', 'user_id' => other_uid))
     end
   end
 end

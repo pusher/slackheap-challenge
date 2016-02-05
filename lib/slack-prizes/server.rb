@@ -19,9 +19,12 @@ module SlackPrizes
 
       client.on :hello do
         puts "Successfully connected, welcome '#{client.self.name}' to the '#{client.team.name}' team at https://#{client.team.domain}.slack.com."
-        client.users.each do |user|
-          user = user[1] # slightly odd data: [ user_id, user_object ]
+        client.users.each_value do |user|
           @redis.hset(:users, user.id, user.name)
+        end
+
+        client.channels.each_value do |channel|
+          @redis.hset(:channels, channel.id, channel.name)
         end
       end
 
@@ -33,8 +36,6 @@ module SlackPrizes
     end
 
     def process(data)
-      @registry.scan(data)
-
       check_happy(data)
       check_emoji(data)
       check_thanks(data)
@@ -42,6 +43,8 @@ module SlackPrizes
       check_spammer(data)
       check_popular(data)
       check_lovebirds(data)
+
+      @registry.scan(data)
     end
 
     def check_spammer(data)
@@ -50,10 +53,27 @@ module SlackPrizes
 
     def check_lovebirds(data)
       user_a = data.user
-      user_b = @registry.last_speaker(data.channel, user_a)
+      user_b = @registry.last_speaker(data.channel)
+
+      # Ignore if user has double-spoken
+      return if user_a == user_b
+
       if user_b
         users = [ user_a, user_b ].sort.join(' ')
-        @redis.zincrby(:lovebirds, 1, users)
+
+        current_streakers = @redis.hget('streaks:users', data.channel)
+        if users == current_streakers
+          current_streak_length = @redis.hincrby('streaks:length', data.channel, 1)
+          high_streak_length = @redis.zscore(:lovebirds, users)
+          if high_streak_length.nil? || current_streak_length > high_streak_length
+            @redis.zadd(:lovebirds, current_streak_length, users)
+            @redis.hset('lovebirds:channel', users, data.channel)
+            @redis.hset('lovebirds:ts', users, Time.now.to_i)
+          end
+        else
+          @redis.hset('streaks:users', data.channel, users)
+          @redis.hset('streaks:length', data.channel, 1)
+        end
       end
     end
 

@@ -6,6 +6,10 @@ module SlackPrizes
     def self.redis; @redis; end
     def self.redis=(redis); @redis = redis; end
 
+    def self.resolve_channel(channel_id)
+      @redis.hget(:channels, channel_id)
+    end
+
     def self.resolve_user(user_id)
       @redis.hget(:users, user_id)
     end
@@ -72,7 +76,19 @@ module SlackPrizes
       },
       {
         name: '&#128145; Lovebirds',
-        find: lambda { SinatraApp.highest_pair_from_zset(:lovebirds) }
+        find: lambda {
+          user_ids, score = SinatraApp.redis.zrange(:lovebirds, -1, -1, withscores: true).first
+          if user_ids
+            ids = user_ids.split(' ')
+            users = ids.map { |id| resolve_user(id) }
+            channel = resolve_channel(SinatraApp.redis.hget('lovebirds:channel', user_ids))
+            time = Time.at(SinatraApp.redis.hget('lovebirds:ts', user_ids).to_i).strftime('%a %e %b %H:%M')
+
+            "#{users[0]} & #{users[1]} (#{score.to_i} messages in ##{channel} on #{time})"
+          else
+            "Unknown"
+          end
+        }
       }
     ]
 
