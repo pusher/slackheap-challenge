@@ -43,6 +43,12 @@ module SlackPrizes
       end
     end
 
+    def self.get_graph(set, limit)
+      @redis.zrange(set, 0, limit - 1, withscores: true).map do |user_id, score|
+        { label: resolve_user(user_id), value: score }
+      end
+    end
+
     set :public_folder, File.dirname(__FILE__) + '/static'
 
     CATEGORIES = [
@@ -94,6 +100,10 @@ module SlackPrizes
 
     get '/' do
       @data = CATEGORIES
+      @graph_data = {
+        spammer: SinatraApp.get_graph(:spammer, 10),
+        popular: SinatraApp.get_graph(:popular, 10)
+      }
       erb :index
     end
   end
