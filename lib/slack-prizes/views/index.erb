@@ -46,9 +46,9 @@
       <div class="container">
         <div class="component">
 <% @graph_data.keys.each do |key| %>
-          <div id="<%= key %>-holder" style="float: left; margin: 50px">
+          <div id="<%= key %>-holder" style="float: left; margin: 40px">
             <h2>Breakdown <%= key %></h2>
-            <canvas id="<%= key %>-chart" width="300" height="300"></canvas>
+            <canvas id="<%= key %>-chart" width="250" height="250"></canvas>
           </div>
 <% end %>
             <script>
