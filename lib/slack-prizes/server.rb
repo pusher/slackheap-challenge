@@ -147,7 +147,6 @@ module SlackPrizes
       before_user, before_score = @redis.zrange(key, -1, -1, withscores: true).first
       after_score = @redis.zincrby(key, 1, user)
 
-      p [ before_user, user, before_score, after_score]
       if before_user &&
           before_user != user &&
           after_score.to_i == before_score.to_i
