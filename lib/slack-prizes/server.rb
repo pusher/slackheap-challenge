@@ -121,7 +121,8 @@ module SlackPrizes
 
     def check_popular(data)
       target = mention(data.text)
-      if target
+      if target &&
+          target != data.user
         increment(:popular, 'popular', data.user, data.channel)
       end
     end
@@ -135,7 +136,8 @@ module SlackPrizes
     def check_and_attribute(data, regexes, key)
       if match_any(regexes, data.text)
         target = mention(data.text) || @registry.last_speaker(data.channel, data.user)
-        if target
+        if target &&
+            target != data.user
           increment(key, key.to_s, target, data.channel)
         end
       end
