@@ -15,24 +15,28 @@ module SlackPrizes
     end
 
     def go
-      client = Slack::RealTime::Client.new(token: ENV['SLACK_TOKEN'])
+      @client = Slack::RealTime::Client.new(token: ENV['SLACK_TOKEN'])
 
-      client.on :hello do
-        puts "Successfully connected, welcome '#{client.self.name}' to the '#{client.team.name}' team at https://#{client.team.domain}.slack.com."
-        client.users.each_value do |user|
+      @client.on :hello do
+        puts "Successfully connected, welcome '#{@client.self.name}' to the '#{@client.team.name}' team at https://#{@client.team.domain}.slack.com."
+        @client.users.each_value do |user|
           @redis.hset(:users, user.id, user.name)
         end
 
-        client.channels.each_value do |channel|
+        @client.channels.each_value do |channel|
           @redis.hset(:channels, channel.id, channel.name)
         end
       end
 
-      client.on :message do |data|
-        process(data)
+      @client.on :message do |data|
+        begin
+          process(data)
+        rescue => e
+          p e
+        end
       end
 
-      client.start!
+      @client.start!
     end
 
     def process(data)
@@ -118,13 +122,13 @@ module SlackPrizes
     def check_popular(data)
       target = mention(data.text)
       if target
-        @redis.zincrby(:popular, 1, target)
+        increment(:popular, 'popular', data.user, data.channel)
       end
     end
 
     def check_and_count(data, regexes, key)
       if match_any(regexes, data.text)
-        @redis.zincrby(key, 1, data.user)
+        increment(key, key.to_s, data.user, data.channel)
       end
     end
 
@@ -132,8 +136,20 @@ module SlackPrizes
       if match_any(regexes, data.text)
         target = mention(data.text) || @registry.last_speaker(data.channel, data.user)
         if target
-          @redis.zincrby(key, 1, target)
+          increment(key, key.to_s, target, data.channel)
         end
+      end
+    end
+
+    def increment(key, desc, user, channel)
+      before_user, before_score = @redis.zrange(key, -1, -1, withscores: true).first
+      after_score = @redis.zincrby(key, 1, user)
+
+      p [ before_user, user, before_score, after_score]
+      if before_user &&
+          before_user != user &&
+          after_score.to_i == before_score.to_i
+        @client.message(channel: channel, text: "<@#{user}> has taken the lead on #{desc} from <@#{before_user}> with #{after_score.to_i}!")
       end
     end
 
