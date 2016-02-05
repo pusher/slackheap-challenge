@@ -106,7 +106,8 @@ module SlackPrizes
       @data = CATEGORIES
       @graph_data = {
         spammer: SinatraApp.get_graph(:spammer, 10),
-        popular: SinatraApp.get_graph(:popular, 10)
+        popular: SinatraApp.get_graph(:popular, 10),
+        helpful: SinatraApp.get_graph(:helpful, 10)
       }
       erb :index
     end
