@@ -19,6 +19,17 @@ module SlackPrizes
       end
     end
 
+    def self.highest_pair_from_zset(set)
+      user_ids, score = SinatraApp.redis.zrange(set, -1, -1, withscores: true).first
+      if user_ids
+        ids = user_ids.split(' ')
+        users = ids.map { |id| resolve_user(id) }
+        "#{users[0]} & #{users[1]} (#{score.to_i})"
+      else
+        "Unknown"
+      end
+    end
+
     def self.lowest_user_from_zset(set)
       user_id, score = SinatraApp.redis.zrevrange(set, -1, -1, withscores: true).first
       if user_id
@@ -58,6 +69,10 @@ module SlackPrizes
       {
         name: '&#128129; Popular',
         find: lambda { SinatraApp.highest_user_from_zset(:popular) }
+      },
+      {
+        name: '&#128145; Lovebirds',
+        find: lambda { SinatraApp.highest_pair_from_zset(:lovebirds) }
       }
     ]
 

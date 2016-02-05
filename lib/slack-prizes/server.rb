@@ -39,10 +39,20 @@ module SlackPrizes
       check_gg(data)
       check_spammer(data)
       check_popular(data)
+      check_lovebirds(data)
     end
 
     def check_spammer(data)
       check_and_count(data, [//], :spammer)
+    end
+
+    def check_lovebirds(data)
+      user_a = data['user_id']
+      user_b = @registry.last_speaker(data['channel_id'], user_a)
+      if user_b
+        users = [ user_a, user_b ].sort.join(' ')
+        @redis.zincrby(:lovebirds, 1, users)
+      end
     end
 
     HAPPY_REGEXES = [
