@@ -151,7 +151,7 @@ module SlackPrizes
           before_user != user &&
           after_score.to_i == before_score.to_i &&
           after_score > 3
-        @client.message(channel: channel, text: "<@#{user}> has taken the lead on #{desc} from <@#{before_user}> with #{after_score.to_i}!")
+        @client.message(channel: channel, text: "<@#{user}> has taken the lead on #{desc} with #{after_score.to_i}!")
       end
     end
 
